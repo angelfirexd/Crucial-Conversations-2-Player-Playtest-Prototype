@@ -1,380 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crucial Conversation Trainer (V25)</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crucial Conversation Trainer (2-Player)</title>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-        }
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-        .app-container {
-            max-width: 480px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            min-height: 95vh;
-            display: flex;
-            flex-direction: column;
-        }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 10px;
+    }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    .app-container{
+      max-width:480px; margin:0 auto; background:#fff; border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+      overflow:hidden; min-height:95vh; display:flex; flex-direction:column;
+    }
 
-        .header h1 {
-            font-size: 1.5em;
-            margin-bottom: 5px;
-        }
+    .header{
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:#fff; padding:20px; text-align:center;
+    }
+    .header h1{ font-size:1.5em; margin-bottom:5px; }
+    .header p{ opacity:.9; font-size:.9em; }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9em;
-        }
+    .progress-container{
+      background:#f0f0f0; padding:15px 20px; display:flex;
+      justify-content:space-around; align-items:center;
+    }
+    .turn-dot{
+      width:10px; height:10px; border-radius:50%; background:#ddd;
+      transition:all .3s ease;
+    }
+    .turn-dot.active{ background:#667eea; transform:scale(1.3); }
+    .turn-dot.completed{ background:#4caf50; }
 
-        .progress-container {
-            background: #f0f0f0;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
+    #mainContent{ flex:1; display:flex; flex-direction:column; background:#f8f9fa; }
 
-        .turn-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ddd;
-            transition: all 0.3s ease;
-        }
+    .avatar-section{ padding:20px 20px 10px; text-align:center; background:#f8f9fa; }
+    .avatar{ font-size:4em; margin-bottom:10px; }
+    .speaker-name{ font-weight:600; font-size:1.1em; margin-bottom:5px; }
 
-        .turn-dot.active {
-            background: #667eea;
-            transform: scale(1.3);
-        }
+    .dialogue-bubble{
+      background:#fff; border-radius:15px; padding:15px;
+      box-shadow:0 2px 10px rgba(0,0,0,.1);
+      margin:10px 0; font-size:1em; line-height:1.5; text-align:left;
+    }
+    .prev-dialogue-bubble{
+      background:#e3f2fd; border-radius:15px; padding:10px 15px;
+      box-shadow:0 1px 4px rgba(0,0,0,.05);
+      margin-bottom:10px; font-size:.85em; opacity:.8; text-align:left;
+    }
 
-        .turn-dot.completed {
-            background: #4caf50;
-        }
+    .content-section{ flex:1; padding:20px; overflow-y:auto; background:#f8f9fa; }
+    .instruction-text{
+      text-align:center; color:#666; margin-bottom:20px;
+      font-size:.95em; font-weight:500;
+    }
 
-        #mainContent {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #f8f9fa;
-        }
+    .choices-grid{ display:flex; flex-direction:column; gap:12px; }
+    .choice-card{
+      padding:15px; border:2px solid #ddd; border-radius:12px; background:#fff; cursor:pointer;
+      transition:all .2s ease; text-align:left;
+    }
+    .choice-card:active{ transform:scale(.98); }
 
-        .avatar-section {
-            padding: 20px 20px 10px 20px;
-            text-align: center;
-            background: #f8f9fa;
-        }
+    .choice-card.cooperative{ border-color:#4caf50; }
+    .choice-card.cooperative:hover{ background:#e8f5e9; border-color:#388e3c; }
 
-        .avatar {
-            font-size: 4em;
-            margin-bottom: 10px;
-        }
+    .choice-card.neutral{ border-color:#2196f3; }
+    .choice-card.neutral:hover{ background:#e3f2fd; border-color:#1976d2; }
 
-        .speaker-name {
-            font-weight: 600;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-        }
+    .choice-card.defensive{ border-color:#ff9800; }
+    .choice-card.defensive:hover{ background:#fff3e0; border-color:#f57c00; }
 
-        .dialogue-bubble {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 10px 0;
-            font-size: 1em;
-            line-height: 1.5;
-            text-align: left;
-        }
+    .choice-card.resistant{ border-color:#f44336; }
+    .choice-card.resistant:hover{ background:#ffebee; border-color:#c62828; }
 
-        .prev-dialogue-bubble {
-            background: #e3f2fd;
-            border-radius: 15px;
-            padding: 10px 15px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-            margin-bottom: 10px;
-            font-size: 0.85em;
-            opacity: 0.8;
-            text-align: left;
-        }
+    .choice-label{
+      display:inline-block; padding:3px 10px; border-radius:10px;
+      font-size:.75em; font-weight:bold; margin-bottom:8px;
+    }
+    .label-cooperative{ background:#4caf50; color:#fff; }
+    .label-neutral{ background:#2196f3; color:#fff; }
+    .label-defensive{ background:#ff9800; color:#fff; }
+    .label-resistant{ background:#f44336; color:#fff; }
 
-        .content-section {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
+    .choice-text{ font-size:.95em; line-height:1.4; color:#333; }
 
-        .instruction-text {
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 0.95em;
-            font-weight: 500;
-        }
+    .outcome-screen{ text-align:center; padding:20px; }
+    .outcome-emoji{ font-size:5em; margin-bottom:15px; }
+    .outcome-title{ font-size:1.5em; font-weight:bold; margin-bottom:15px; }
+    .outcome-description{ font-size:.95em; line-height:1.6; margin-bottom:10px; color:#555; }
 
-        .choices-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .outcome-box{ border-radius:15px; padding:20px; margin:15px 0; text-align:left; }
+    .outcome-winwin{ background:linear-gradient(135deg,#4caf50 0%,#8bc34a 100%); color:#fff; }
+    .outcome-compromise{ background:linear-gradient(135deg,#ffc107 0%,#ffeb3b 100%); color:#333; }
+    .outcome-neutral{ background:linear-gradient(135deg,#2196f3 0%,#03a9f4 100%); color:#fff; }
+    .outcome-tense{ background:linear-gradient(135deg,#ff9800 0%,#ff5722 100%); color:#fff; }
+    .outcome-breakdown{ background:linear-gradient(135deg,#f44336 0%,#e91e63 100%); color:#fff; }
 
-        .choice-card {
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-        }
+    .reset-btn{
+      margin-top:20px; padding:15px 30px; background:#fff; color:#667eea; border:none; border-radius:25px;
+      font-size:1em; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,.2);
+    }
+    .reset-btn:active{ transform:scale(.95); }
 
-        .choice-card:active {
-            transform: scale(0.98);
-        }
+    .path-badge{
+      display:inline-block; padding:5px 12px; background:#667eea; color:#fff; border-radius:15px; margin:3px; font-size:.8em;
+    }
 
-        .choice-card.cooperative {
-            border-color: #4caf50;
-        }
-
-        .choice-card.cooperative:hover {
-            background: #e8f5e9;
-            border-color: #388e3c;
-        }
-
-        .choice-card.neutral {
-            border-color: #2196f3;
-        }
-
-        .choice-card.neutral:hover {
-            background: #e3f2fd;
-            border-color: #1976d2;
-        }
-
-        .choice-card.defensive {
-            border-color: #ff9800;
-        }
-
-        .choice-card.resistant {
-            border-color: #f44336;
-        }
-
-        .choice-card.defensive:hover {
-            background: #fff3e0;
-            border-color: #f57c00;
-        }
-
-        .choice-card.resistant:hover {
-            background: #ffebee;
-            border-color: #c62828;
-        }
-
-        .choice-label {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.75em;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .label-cooperative {
-            background: #4caf50;
-            color: white;
-        }
-
-        .label-neutral {
-            background: #2196f3;
-            color: white;
-        }
-
-        .label-defensive {
-            background: #ff9800;
-            color: white;
-        }
-
-        .label-resistant {
-            background: #f44336;
-            color: white;
-        }
-
-        .choice-text {
-            font-size: 0.95em;
-            line-height: 1.4;
-            color: #333;
-        }
-
-        .outcome-screen {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .outcome-emoji {
-            font-size: 5em;
-            margin-bottom: 15px;
-        }
-
-        .outcome-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .outcome-description {
-            font-size: 0.95em;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .outcome-box {
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            text-align: left;
-        }
-
-        .outcome-winwin {
-            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
-            color: white;
-        }
-
-        .outcome-compromise {
-            background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%);
-            color: #333;
-        }
-
-        .outcome-neutral {
-            background: linear-gradient(135deg, #2196f3 0%, #03a9f4 100%);
-            color: white;
-        }
-
-        .outcome-tense {
-            background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
-            color: white;
-        }
-
-        .outcome-breakdown {
-            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
-            color: white;
-        }
-
-        .reset-btn {
-            margin-top: 20px;
-            padding: 15px 30px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 25px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .reset-btn:active {
-            transform: scale(0.95);
-        }
-
-        .path-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            background: #667eea;
-            color: white;
-            border-radius: 15px;
-            margin: 3px;
-            font-size: 0.8em;
-        }
-
-        .metrics {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .metric-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            font-size: 0.9em;
-            color: #333;
-        }
-    </style>
+    .metrics{
+      background:#f8f9fa; padding:15px; border-radius:10px; margin-top:15px;
+    }
+    .metric-item{
+      display:flex; justify-content:space-between; margin:8px 0; font-size:.9em; color:#333;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>🗣️ Crucial Conversations</h1>
-            <p>Return-to-Office Discussion</p>
-        </div>
-
-        <div class="progress-container">
-            <div class="turn-dot" id="dot1"></div>
-            <div class="turn-dot" id="dot2"></div>
-            <div class="turn-dot" id="dot3"></div>
-            <div class="turn-dot" id="dot4"></div>
-            <div class="turn-dot" id="dot5"></div>
-            <div class="turn-dot" id="dot6"></div>
-            <div class="turn-dot" id="dot7"></div>
-        </div>
-
-        <div id="mainContent"></div>
+  <div class="app-container">
+    <div class="header">
+      <h1>🗣️ Crucial Conversations</h1>
+      <p>Return-to-Office Discussion</p>
     </div>
 
-    <script type="module">
-  // ✅ Firebase imports (use SAME version everywhere)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-  import {
-    getFirestore,
-    doc,
-    setDoc,
-    updateDoc,
-    onSnapshot,
-    serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+    <div class="progress-container">
+      <div class="turn-dot" id="dot1"></div>
+      <div class="turn-dot" id="dot2"></div>
+      <div class="turn-dot" id="dot3"></div>
+      <div class="turn-dot" id="dot4"></div>
+      <div class="turn-dot" id="dot5"></div>
+      <div class="turn-dot" id="dot6"></div>
+      <div class="turn-dot" id="dot7"></div>
+    </div>
 
-  // ✅ Your Firebase config (from your console)
-  const firebaseConfig = {
-    apiKey: "AIzaSyDVX6RM1Fy4XExvTINnzvaGsbpoX730Pow",
-    authDomain: "crucial-conversations-2player.firebaseapp.com",
-    projectId: "crucial-conversations-2player",
-    storageBucket: "crucial-conversations-2player.firebasestorage.app",
-    messagingSenderId: "863679535202",
-    appId: "1:863679535202:web:659c3f9f0f30949d6f193b",
-    measurementId: "G-032HZ6G3ES"
-  };
+    <div id="mainContent"></div>
+  </div>
 
-  // ✅ Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
 
-  // ---------------------------
-  // YOUR CONVERSATION DATA
-  // ---------------------------
-  // Paste your existing const conversations = {...} here.
-  // KEEP IT EXACTLY as you already have it.
-  const conversations = {
+  <script type="module">
+    // ---------------------------
+    // Firebase setup
+    // ---------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import {
+      getFirestore, doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVX6RM1Fy4XExvTINnzvaGsbpoX730Pow",
+      authDomain: "crucial-conversations-2player.firebaseapp.com",
+      projectId: "crucial-conversations-2player",
+      storageBucket: "crucial-conversations-2player.firebasestorage.app",
+      messagingSenderId: "863679535202",
+      appId: "1:863679535202:web:659c3f9f0f30949d6f193b",
+      measurementId: "G-032HZ6G3ES"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // ---------------------------
+    // 1) YOUR CONVERSATION DATA
+    // ---------------------------
+    // Paste your existing const conversations = {...} here.
+    // KEEP IT EXACTLY as-is (manager/employee/outcome types etc).
+   const conversations = {
             // --- TURN 1 (MANAGER) ---
             start: {
                 type: 'manager',
@@ -1336,230 +1133,233 @@
             initConversation();
         }
 
-  // ---------------------------
-  // 2-PLAYER STATE
-  // ---------------------------
-  let roomId = null;
-  let myRole = null; // "manager" or "employee"
-  let unsubscribe = null;
+    // ---------------------------
+    // 2) Shared realtime state
+    // ---------------------------
+    let roomId = null;
+    let myRole = null;           // "manager" or "employee"
+    let unsubscribe = null;
+    let sharedPathHistory = [];
 
-  // Simple UI to pick role + room
-  function renderLobby() {
-    const container = document.getElementById("mainContent");
-    container.innerHTML = `
-      <div class="content-section" style="text-align:center;">
-        <h2 style="margin-bottom:12px;">2-Player Playtest</h2>
+    function randomRoomCode() {
+      return Math.random().toString(36).slice(2, 7).toUpperCase(); // A9K2Q
+    }
 
-        <div style="margin:10px 0;">
-          <button class="reset-btn" id="createRoomBtn">I’m the Manager (Create Room)</button>
-        </div>
-
-        <div style="margin:18px 0; font-size:0.9em; color:#555;">
-          OR join as Employee:
-        </div>
-
-        <input id="roomInput" placeholder="Enter Room Code"
-               style="padding:10px; border-radius:8px; border:1px solid #ccc; width:80%; max-width:260px;" />
-        <div style="margin-top:10px;">
-          <button class="reset-btn" id="joinRoomBtn">Join as Employee</button>
-        </div>
-      </div>
-    `;
-
-    document.getElementById("createRoomBtn").onclick = createRoomAsManager;
-    document.getElementById("joinRoomBtn").onclick = joinRoomAsEmployee;
-  }
-
-  function randomRoomCode() {
-    return Math.random().toString(36).slice(2, 7).toUpperCase(); // e.g. "A9K2Q"
-  }
-
-  async function createRoomAsManager() {
-    roomId = randomRoomCode();
-    myRole = "manager";
-
-    const roomRef = doc(db, "sessions", roomId);
-    await setDoc(roomRef, {
-      stateId: "start",
-      activeRole: "manager",
-      pathHistory: [],
-      updatedAt: serverTimestamp()
-    });
-
-    startListening(roomRef);
-  }
-
-  async function joinRoomAsEmployee() {
-    const input = document.getElementById("roomInput").value.trim().toUpperCase();
-    if (!input) return alert("Enter a room code.");
-    roomId = input;
-    myRole = "employee";
-
-    const roomRef = doc(db, "sessions", roomId);
-    startListening(roomRef);
-  }
-
-  function startListening(roomRef) {
-    if (unsubscribe) unsubscribe();
-
-    unsubscribe = onSnapshot(roomRef, (snap) => {
-      if (!snap.exists()) {
-        alert("Room not found. Check the code.");
-        renderLobby();
-        return;
+    function updateProgress(turn) {
+      for (let i = 1; i <= 7; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        if (!dot) continue;
+        if (i < turn) dot.className = "turn-dot completed";
+        else if (i === turn) dot.className = "turn-dot active";
+        else dot.className = "turn-dot";
       }
-      const data = snap.data();
-      renderConversationFromSharedState(data);
-    });
-  }
-
-  // ---------------------------
-  // RENDERING (shared state)
-  // ---------------------------
-  function renderConversationFromSharedState(shared) {
-    const { stateId, activeRole, pathHistory = [] } = shared;
-    window._pathHistory = pathHistory; // ✅ keep in sync
-
-    const state = conversations[stateId];
-    const container = document.getElementById("mainContent");
-
-    const roomBanner = `
-      <div style="padding:8px 12px; background:#111; color:#fff; font-size:0.85em; text-align:center;">
-        Room: <b>${roomId}</b> | You are: <b>${myRole}</b> | Turn: <b>${activeRole}</b>
-      </div>
-    `;
-
-    if (!state) {
-      container.innerHTML = roomBanner + `<div class="content-section">Unknown state.</div>`;
-      return;
     }
 
-    if (state.type === "outcome") {
-      renderOutcome(state, pathHistory);
-      return;
-    }
+    // ---------------------------
+    // 3) Lobby UI
+    // ---------------------------
+    function renderLobby(message="") {
+      const container = document.getElementById("mainContent");
+      container.innerHTML = `
+        <div class="content-section" style="text-align:center;">
+          <h2 style="margin-bottom:12px;">2-Player Playtest</h2>
 
-    updateProgress(state.turn);
-
-    const isMyTurn = (activeRole === myRole);
-
-    const html = `
-      ${roomBanner}
-      <div class="avatar-section">
-        <div class="avatar">${state.avatar}</div>
-        <div class="speaker-name">${state.speaker}</div>
-        ${state.prevDialogue ? `<div class="prev-dialogue-bubble">${state.prevDialogue}</div>` : ""}
-        ${state.dialogue ? `<div class="dialogue-bubble">${state.dialogue}</div>` : ""}
-      </div>
-
-      <div class="content-section">
-        <div class="instruction-text">
-          ${state.instruction}
-          <div style="margin-top:6px; font-size:0.85em; color:${isMyTurn ? "#2e7d32" : "#c62828"};">
-            ${isMyTurn ? "✅ Your turn to choose" : "⏳ Waiting for the other player"}
+          <div style="margin:10px 0;">
+            <label style="display:block; font-weight:600; margin-bottom:6px;">Role</label>
+            <select id="roleSelect"
+              style="padding:10px; border-radius:8px; border:1px solid #ccc; width:80%; max-width:260px;">
+              <option value="manager">Manager (Jamie)</option>
+              <option value="employee">Employee (Alex)</option>
+            </select>
           </div>
+
+          <div style="margin-top:14px;">
+            <input id="roomInput" placeholder="Room code (leave empty to create)"
+              style="padding:10px; border-radius:8px; border:1px solid #ccc; width:80%; max-width:260px;" />
+          </div>
+
+          <div style="margin-top:12px;">
+            <button class="reset-btn" id="joinBtn">Create / Join Room</button>
+          </div>
+
+          <p id="roomStatus"
+             style="margin-top:12px; font-size:0.9em; color:#666;">
+             ${message}
+          </p>
         </div>
+      `;
 
-        <div class="choices-grid">
-          ${state.choices.map(choice => `
-            <div class="choice-card ${choice.type}"
-                 data-next="${choice.next}"
-                 data-label="${choice.label}"
-                 style="${isMyTurn ? "" : "opacity:0.5; pointer-events:none;"}">
-              <span class="choice-label label-${choice.type}">${choice.label}</span>
-              <div class="choice-text">${choice.text}</div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
+      document.getElementById("joinBtn").onclick = async () => {
+        myRole = document.getElementById("roleSelect").value;
+        const code = document.getElementById("roomInput").value.trim().toUpperCase();
+        await createOrJoinRoom(code);
+      };
+    }
 
-    container.innerHTML = html;
-
-    if (isMyTurn) attachChoiceHandlers();
-  }
-
-  function attachChoiceHandlers() {
-    document.querySelectorAll(".choice-card").forEach(card => {
-      card.addEventListener("click", async () => {
-        const nextState = card.dataset.next;
-        const label = card.dataset.label;
-
-        const roomRef = doc(db, "sessions", roomId);
-        const nextRole = (myRole === "manager") ? "employee" : "manager";
-
-        await updateDoc(roomRef, {
-          stateId: nextState,
-          activeRole: nextRole,
-          pathHistory: [...window._pathHistory, label],
-          updatedAt: serverTimestamp()
-        });
-      });
-    });
-  }
-
-  function renderOutcome(state, pathHistory) {
-    window._pathHistory = pathHistory;
-
-    const container = document.getElementById("mainContent");
-    container.innerHTML = `
-      <div class="outcome-screen">
-        <div class="outcome-emoji">${state.emoji}</div>
-        <div class="outcome-title">${state.title}</div>
-        <div class="outcome-description">${state.description}</div>
-
-        <div class="outcome-box ${state.outcomeClass}">
-          ${state.result.split("\n").map(line =>
-            line ? `<p style="margin:8px 0;">${line}</p>` : "<br>"
-          ).join("")}
-        </div>
-
-        <div class="metrics">
-          <div class="metric-item"><span><strong>Trust:</strong></span><span>${state.metrics.trust}%</span></div>
-          <div class="metric-item"><span><strong>Satisfaction:</strong></span><span>${state.metrics.satisfaction}%</span></div>
-          <div class="metric-item"><span><strong>Retention:</strong></span><span>${state.metrics.retention}%</span></div>
-        </div>
-
-        <div style="margin-top:20px;">
-          <strong>Path:</strong><br>
-          ${pathHistory.map(step => `<span class="path-badge">${step}</span>`).join("")}
-        </div>
-
-        <button class="reset-btn" id="resetRoomBtn">Reset Room</button>
-      </div>
-    `;
-
-    document.getElementById("resetRoomBtn").onclick = async () => {
+    async function createOrJoinRoom(inputCode) {
+      roomId = inputCode || randomRoomCode();
       const roomRef = doc(db, "sessions", roomId);
-      await updateDoc(roomRef, {
+
+      // If it doesn't exist, this creates it.
+      await setDoc(roomRef, {
         stateId: "start",
         activeRole: "manager",
         pathHistory: [],
         updatedAt: serverTimestamp()
-      });
-    };
+      }, { merge: true });
 
-    updateProgress(7);
-  }
+      startListening(roomRef);
 
-  // ---------------------------
-  // ORIGINAL helper
-  // ---------------------------
-  function updateProgress(turn) {
-    for (let i = 1; i <= 7; i++) {
-      const dot = document.getElementById(`dot${i}`);
-      if (!dot) continue;
-      if (i < turn) dot.className = "turn-dot completed";
-      else if (i === turn) dot.className = "turn-dot active";
-      else dot.className = "turn-dot";
+      renderLobby(`Room: ${roomId} — share this code with the other player.`);
     }
-  }
 
-  // boot lobby
-  window._pathHistory = [];
-  renderLobby();
-</script>
+    function startListening(roomRef) {
+      if (unsubscribe) unsubscribe();
 
-  };
+      unsubscribe = onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) {
+          renderLobby("Room not found. Check the code.");
+          return;
+        }
+        const data = snap.data();
+        renderConversationFromSharedState(data);
+      });
+    }
+
+    // ---------------------------
+    // 4) Rendering from shared state
+    // ---------------------------
+    function renderConversationFromSharedState(shared) {
+      const { stateId, activeRole, pathHistory = [] } = shared;
+      sharedPathHistory = pathHistory;
+
+      const state = conversations[stateId];
+      const container = document.getElementById("mainContent");
+
+      const roomBanner = `
+        <div style="padding:8px 12px; background:#111; color:#fff; font-size:0.85em; text-align:center;">
+          Room: <b>${roomId}</b> | You are: <b>${myRole}</b> | Turn: <b>${activeRole}</b>
+        </div>
+      `;
+
+      if (!state) {
+        container.innerHTML = roomBanner + `<div class="content-section">Unknown state.</div>`;
+        return;
+      }
+
+      if (state.type === "outcome") {
+        renderOutcome(state, pathHistory, true);
+        return;
+      }
+
+      updateProgress(state.turn);
+      const isMyTurn = (activeRole === myRole);
+
+      container.innerHTML = `
+        ${roomBanner}
+
+        <div class="avatar-section">
+          <div class="avatar">${state.avatar}</div>
+          <div class="speaker-name">${state.speaker}</div>
+          ${state.prevDialogue ? `<div class="prev-dialogue-bubble">${state.prevDialogue}</div>` : ""}
+          ${state.dialogue ? `<div class="dialogue-bubble">${state.dialogue}</div>` : ""}
+        </div>
+
+        <div class="content-section">
+          <div class="instruction-text">
+            ${state.instruction}
+            <div style="margin-top:6px; font-size:0.85em; color:${isMyTurn ? "#2e7d32" : "#c62828"};">
+              ${isMyTurn ? "✅ Your turn to choose" : "⏳ Waiting for the other player"}
+            </div>
+          </div>
+
+          <div class="choices-grid">
+            ${state.choices.map(choice => `
+              <div class="choice-card ${choice.type}"
+                   data-next="${choice.next}"
+                   data-label="${choice.label}"
+                   style="${isMyTurn ? "" : "opacity:0.5; pointer-events:none;"}">
+                <span class="choice-label label-${choice.type}">${choice.label}</span>
+                <div class="choice-text">${choice.text}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+
+      if (isMyTurn) attachChoiceHandlersShared();
+    }
+
+    function attachChoiceHandlersShared() {
+      document.querySelectorAll(".choice-card").forEach(card => {
+        card.addEventListener("click", async () => {
+          const nextState = card.dataset.next;
+          const label     = card.dataset.label;
+
+          const nextRole = conversations[nextState]?.type || "manager"; // fallback
+          const roomRef  = doc(db, "sessions", roomId);
+
+          await updateDoc(roomRef, {
+            stateId: nextState,
+            activeRole: nextRole,
+            pathHistory: [...sharedPathHistory, label],
+            updatedAt: serverTimestamp()
+          });
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    }
+
+    function renderOutcome(state, pathHistory, isShared=false) {
+      const container = document.getElementById("mainContent");
+
+      container.innerHTML = `
+        <div class="outcome-screen">
+          <div class="outcome-emoji">${state.emoji}</div>
+          <div class="outcome-title">${state.title}</div>
+          <div class="outcome-description">${state.description}</div>
+
+          <div class="outcome-box ${state.outcomeClass}">
+            ${state.result.split("\n").map(line =>
+              line ? `<p style="margin:8px 0;">${line}</p>` : "<br>"
+            ).join("")}
+          </div>
+
+          <div class="metrics">
+            <div class="metric-item"><span><strong>Trust:</strong></span><span>${state.metrics.trust}%</span></div>
+            <div class="metric-item"><span><strong>Satisfaction:</strong></span><span>${state.metrics.satisfaction}%</span></div>
+            <div class="metric-item"><span><strong>Retention:</strong></span><span>${state.metrics.retention}%</span></div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <strong>Path:</strong><br>
+            ${pathHistory.map(step => `<span class="path-badge">${step}</span>`).join("")}
+          </div>
+
+          <button class="reset-btn" id="resetBtn">${isShared ? "Reset Room" : "Try Again"}</button>
+        </div>
+      `;
+
+      document.getElementById("resetBtn").onclick = async () => {
+        if (!isShared) return;
+
+        const roomRef = doc(db, "sessions", roomId);
+        await updateDoc(roomRef, {
+          stateId: "start",
+          activeRole: "manager",
+          pathHistory: [],
+          updatedAt: serverTimestamp()
+        });
+      };
+
+      updateProgress(7);
+    }
+
+    // ---------------------------
+    // 5) Boot
+    // ---------------------------
+    renderLobby("Pick a role, create a room, then open it on your phone.");
+  </script>
 </body>
 </html>
